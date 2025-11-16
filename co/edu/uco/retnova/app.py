@@ -58,7 +58,7 @@ def login_screen():
             st.session_state.user_id = data["usuario"]["id"]
             st.rerun()
         else:
-            st.error("❌ Usuario o contraseña incorrectos")
+            st.error(res.json().get("error", "LOGIN_CONTRASENA_INCORRECTA"))
 
 # ==============================
 # SIDEBAR
@@ -72,39 +72,6 @@ def header():
         st.session_state.clear()
         st.rerun()
 
-# ==============================
-# SOLICITANTE — Crear reto
-# ==============================
-def vista_solicitar_reto():
-    st.title("🟢 Registrar Reto")
-
-    # 🔥 Cargar categorías desde FastAPI
-    res_cat = api_get("/catalogo/CATEGORIAS", st.session_state.token)
-    categorias = res_cat.json() if res_cat.status_code == 200 else []
-
-    titulo = st.text_input("Título")
-    descripcion = st.text_area("Descripción")
-    categoria = st.selectbox("Categoría", categorias)
-    fecha_entrega = st.date_input("Fecha de entrega", min_value=date.today())
-    observaciones = st.text_area("Observaciones")
-
-    if st.button("Crear"):
-        payload = {
-            "titulo": titulo,
-            "descripcion": descripcion,
-            "categoria": categoria,
-            "estado": "Pendiente",
-            "fecha_entrega": str(fecha_entrega),
-            "solicitante_id": st.session_state.user_id,
-            "responsable_id": None,
-            "observaciones": observaciones
-        }
-
-        res = api_post("/retos/registrar", payload, st.session_state.token)
-        if res.status_code == 200:
-            st.success("✅ Reto creado correctamente")
-        else:
-            st.error(res.json()["error"])
 
 
 # ==============================
@@ -246,13 +213,73 @@ def vista_cambiar_estado_lider():
         res = api_put(url, token=st.session_state.token)
 
         if res.status_code == 200:
-            st.success("Estado actualizado correctamente")
+            st.success(res.json().get("mensaje", "CAMBIAR_ESTADO_OK"))
         else:
-            try:
-                st.error(res.json()["error"])
-            except:
-                st.error("No se pudo actualizar el estado")
+            st.error(res.json().get("error", "CAMBIAR_ESTADO_ERROR"))
 
+
+
+def vista_eliminar_reto():
+    st.title("❌ Eliminar Reto")
+
+    res = api_get("/retos/listar", st.session_state.token)
+
+    if res.status_code != 200:
+        st.error("No se pudieron cargar los retos.")
+        return
+
+    retos = res.json()
+
+    opcion = st.selectbox(
+        "Seleccione un reto para eliminar",
+        retos,
+        format_func=lambda r: f"{r['id']} - {r['titulo']}"
+    )
+
+    if st.button("Eliminar"):
+        res_del = requests.delete(
+            f"{API_URL}/retos/eliminar/{opcion['id']}",
+            headers={"Authorization": f"Bearer {st.session_state.token}"}
+        )
+
+        if res_del.status_code == 200:
+            st.success(res_del.json().get("mensaje", "ELIMINAR_RETO_OK"))
+        else:
+            st.error(res_del.json().get("error", "ELIMINAR_RETO_ERROR"))
+            
+# ==============================
+# SOLICITANTE — Crear reto
+# ==============================
+def vista_solicitar_reto():
+    st.title("🟢 Registrar Reto")
+
+    # 🔥 Cargar categorías desde FastAPI
+    res_cat = api_get("/catalogo/CATEGORIAS", st.session_state.token)
+    categorias = res_cat.json() if res_cat.status_code == 200 else []
+
+    titulo = st.text_input("Título")
+    descripcion = st.text_area("Descripción")
+    categoria = st.selectbox("Categoría", categorias)
+    fecha_entrega = st.date_input("Fecha de entrega", min_value=date.today())
+    observaciones = st.text_area("Observaciones")
+
+    if st.button("Crear"):
+        payload = {
+            "titulo": titulo,
+            "descripcion": descripcion,
+            "categoria": categoria,
+            "estado": "Pendiente",
+            "fecha_entrega": str(fecha_entrega),
+            "solicitante_id": st.session_state.user_id,
+            "responsable_id": None,
+            "observaciones": observaciones
+        }
+
+        res = api_post("/retos/registrar", payload, st.session_state.token)
+        if res.status_code == 200:
+            st.success("Reto creado correctamente")
+        else:
+            st.error(res.json()["error"])
 
 
 # ==============================
@@ -362,9 +389,10 @@ def eliminar_usuario_admin(usuario_id):
     )
 
     if res.status_code == 200:
-        st.success(f"Usuario {usuario_id} eliminado correctamente.")
+        st.success(res.json().get("mensaje", "USUARIO_ELIMINADO_OK"))
     else:
-        st.error(res.json()["error"])
+        st.error(res.json().get("error", "NO_ENCONTRADO_USUARIO"))
+
 
 def vista_listar_todos_retos():
     st.title("📋 Lista de Todos los Retos")
@@ -510,13 +538,15 @@ if rol == "Solicitante":
         vista_mis_retos_solicitante()
 
 elif rol == "Lider":
-    menu = st.sidebar.radio("Menú", ["Asignar Responsable","Cambiar Estado de Cualquier Reto","Dashboard"])
+    menu = st.sidebar.radio("Menú", ["Asignar Responsable","Cambiar Estado de Cualquier Reto","Dashboard", "Eliminar Reto"])
     if menu == "Asignar Responsable":
         vista_asignar_responsable()
     elif menu == "Cambiar Estado de Cualquier Reto":
         vista_cambiar_estado_lider()
     elif menu == "Dashboard":
         vista_dashboard()
+    elif menu == "Eliminar Reto":
+        vista_eliminar_reto()
     else:
         vista_listar_todos_retos()
 

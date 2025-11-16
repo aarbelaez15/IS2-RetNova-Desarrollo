@@ -51,7 +51,7 @@ class ActualizarEliminarRetoUseCase:
     # ======================================================
     # 🔴 ELIMINAR RETO
     # ======================================================
-    def eliminar(self, reto_id: int):
+    def eliminar(self, reto_id: int, usuario_id: int):
         """
         Elimina un reto existente por su ID.
         """
@@ -62,11 +62,10 @@ class ActualizarEliminarRetoUseCase:
                 raise Exception("Reto no encontrado para eliminar.")
 
             # Registrar auditoría
-            # ⚠️ Nota: usuario_id=1 simulado. Luego vendrá del Identity Provider.
             self.auditor.registrar_evento(
-                1,
+                usuario_id,
                 "ELIMINAR_RETO",
-                f"Reto con ID {reto_id} eliminado por usuario 1."
+                f"Reto con ID {reto_id} eliminado por usuario {usuario_id}."
             )
 
             # Retornar mensaje del catálogo

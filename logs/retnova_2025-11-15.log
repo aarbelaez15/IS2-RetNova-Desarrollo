@@ -1,0 +1,21 @@
+2025-11-15 19:14:35,483 | ERROR | ❌ Error al registrar reto: can't compare offset-naive and offset-aware datetimes
+2025-11-15 19:16:23,983 | ERROR | ❌ Error al registrar reto: El reto debe tener título y descripción.
+2025-11-15 19:16:28,032 | ERROR | ❌ Error al registrar reto: El reto debe tener título y descripción.
+2025-11-15 19:16:54,377 | INFO | ✅ Reto creado exitosamente: 'a' | Solicitante ID: 7
+2025-11-15 19:16:58,733 | ERROR | ❌ Error al registrar reto: El reto debe tener título y descripción.
+2025-11-15 19:23:30,173 | ERROR | ❌ Error al registrar reto: can't compare offset-naive and offset-aware datetimes
+2025-11-15 19:23:39,221 | ERROR | ❌ Error al registrar reto: can't compare offset-naive and offset-aware datetimes
+2025-11-15 19:25:31,906 | ERROR | ❌ Error al registrar reto: La fecha de entrega debe ser futura.
+2025-11-15 19:27:15,678 | ERROR | La fecha de entrega debe ser futura.
+2025-11-15 19:27:24,561 | ERROR | El reto debe tener título y descripción.
+2025-11-15 19:27:32,328 | ERROR | El reto debe tener título y descripción.
+2025-11-15 19:27:40,225 | INFO | Reto creado exitosamente: 's' | Solicitante ID: 7
+2025-11-15 19:29:10,648 | ERROR | El valor proporcionado no corresponde a los parámetros definidos. Categoría recibida: 'Bg'. Permitidas: Reproceso, Solicitud Inventario, Cambio de cifras, Retos nuevos.
+2025-11-15 19:29:26,167 | INFO | Reto creado exitosamente: 's' | Solicitante ID: 7
+2025-11-15 19:30:14,063 | ERROR | El reto debe tener título y descripción.
+2025-11-15 19:30:33,469 | ERROR | El reto debe tener título y descripción.
+2025-11-15 21:01:56,658 | ERROR | La fecha de entrega debe ser futura.
+2025-11-15 21:02:07,345 | INFO | Reto creado exitosamente: 'Captaciones' | Solicitante ID: 7
+2025-11-15 21:02:14,014 | INFO | Reto creado exitosamente: 'Colocaciones' | Solicitante ID: 7
+2025-11-15 21:15:10,830 | ERROR | El reto debe tener título y descripción.
+2025-11-15 21:15:17,983 | INFO | Reto creado exitosamente: 'Tamaño comercial' | Solicitante ID: 7

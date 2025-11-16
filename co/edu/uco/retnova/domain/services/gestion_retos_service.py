@@ -1,27 +1,35 @@
 from datetime import datetime
 from co.edu.uco.retnova.domain.models.reto import Reto
 from co.edu.uco.retnova.infrastructure.external.catalogo_parametros import CatalogoParametros
+from co.edu.uco.retnova.infrastructure.external.catalogo_mensajes import CatalogoMensajes
 
 class GestionRetosService:
-    """Reglas de negocio puras del dominio de retos."""
 
     def validar_creacion(self, reto: Reto):
+
         if not reto.titulo or not reto.descripcion:
-            raise ValueError("El reto debe tener título y descripción.")
+            raise ValueError(
+                CatalogoMensajes.obtener("RETO_TITULO_DESCRIPCION_OBLIGATORIO")
+            )
 
         if reto.fecha_entrega <= datetime.now():
-            raise ValueError("La fecha de entrega debe ser futura.")
+            raise ValueError(
+                CatalogoMensajes.obtener("RETO_FECHA_ENTREGA_FUTURA")
+            )
 
-        # Validar que el estado inicial sea válido
         CatalogoParametros.validar("ESTADOS_RETO", reto.estado)
+
         reto.fecha_creacion = datetime.now()
         reto.estado = "Pendiente"
 
     def cambiar_estado(self, reto: Reto, nuevo_estado: str):
+
         CatalogoParametros.validar("ESTADOS_RETO", nuevo_estado)
 
         if nuevo_estado == "Finalizado" and reto.fecha_entrega is None:
-            raise ValueError("No puede finalizar un reto sin fecha de entrega.")
+            raise ValueError(
+                CatalogoMensajes.obtener("RETO_FINALIZAR_SIN_FECHA")
+            )
 
         reto.estado = nuevo_estado
         return reto

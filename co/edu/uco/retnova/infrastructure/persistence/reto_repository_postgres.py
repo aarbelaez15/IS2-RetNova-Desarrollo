@@ -203,3 +203,14 @@ class RetoRepositoryPostgres:
         finally:
             cursor.close()
             db_config.release_connection(connection)
+
+    def obtener_rol_usuario(self, usuario_id: int):
+        connection = db_config.get_connection()
+        cursor = connection.cursor()
+        try:
+            cursor.execute("SELECT rol FROM usuarios WHERE id = %s;", (usuario_id,))
+            row = cursor.fetchone()
+            return row[0] if row else None
+        finally:
+            cursor.close()
+            db_config.release_connection(connection)

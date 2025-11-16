@@ -12,7 +12,7 @@ class Reto:
         self.titulo = titulo
         self.descripcion = descripcion
         self.categoria = categoria
-        self.estado = estado or "Pendiente"  # 👈 esta línea puede ser el problema
+        self.estado = estado or "Pendiente"  
         self.fecha_creacion = fecha_creacion or datetime.now()
         self.fecha_entrega = fecha_entrega
         self.solicitante_id = solicitante_id

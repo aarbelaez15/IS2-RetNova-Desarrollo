@@ -63,9 +63,11 @@ def actualizar_reto(reto_id: int, reto: RetoDTO, user=Depends(auth_required(["Li
 # ELIMINAR
 # ============================
 @router.delete("/eliminar/{reto_id}")
-def eliminar_reto(reto_id: int, user=Depends(auth_required(["Administrador"]))):
+def eliminar_reto(reto_id: int, user=Depends(auth_required(["Administrador", "Lider"]))):
+    usuario_id = int(user["sub"])
     use_case = ActualizarEliminarRetoUseCase()
-    return use_case.eliminar(reto_id)
+    return use_case.eliminar(reto_id, usuario_id)
+
 
 
 # ============================
@@ -79,10 +81,10 @@ def asignar_responsable(reto_id: int, responsable_id: int, user=Depends(auth_req
 
 
 # ============================
-# CAMBIAR ESTADO (LÍDER / MIEMBRO / RESPONSABLE)
+# CAMBIAR ESTADO (LÍDER / MIEMBRO )
 # ============================
 @router.put("/cambiar-estado/{reto_id}/{nuevo_estado}")
-def cambiar_estado(reto_id: int, nuevo_estado: str, user=Depends(auth_required(["Lider", "Miembro", "Responsable", "Administrador"]))):
+def cambiar_estado(reto_id: int, nuevo_estado: str, user=Depends(auth_required(["Lider", "Miembro"]))):
     usuario_id = int(user["sub"])
     use_case = CambiarEstadoRetoUseCase()
     return use_case.ejecutar(reto_id, nuevo_estado, usuario_id)

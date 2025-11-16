@@ -3,21 +3,18 @@ from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 import jwt
-
+from co.edu.uco.retnova.domain.services.gestion_usuarios_service import GestionUsuariosService
 from co.edu.uco.retnova.infrastructure.config.database import db_config
 from co.edu.uco.retnova.infrastructure.security.auth_service import AuthService
 from co.edu.uco.retnova.infrastructure.security.auth_dependencies import auth_required
 from co.edu.uco.retnova.infrastructure.external.catalogo_parametros import CatalogoParametros
+from co.edu.uco.retnova.infrastructure.external.catalogo_mensajes import CatalogoMensajes
 from co.edu.uco.retnova.infrastructure.persistence.auditoria_repository_postgres import AuditoriaRepositoryPostgres
 from co.edu.uco.retnova.app.dto.registro_usuario_dto import RegistroRequest
 
 router = APIRouter(prefix="/auth", tags=["Autenticación"])
 
-
-
-# ============================
-# LOGIN
-# ============================
+servicio_usuarios = GestionUsuariosService()
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     connection = db_config.get_connection()
@@ -32,15 +29,15 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         usuario = cursor.fetchone()
 
         if not usuario:
-            raise HTTPException(status_code=401, detail="Usuario no encontrado")
+            raise HTTPException(401, CatalogoMensajes.obtener("LOGIN_USUARIO_NO_ENCONTRADO"))
 
         user_id, nombre_usuario, contrasena_hash, rol, activo = usuario
 
         if not activo:
-            raise HTTPException(status_code=403, detail="Usuario inactivo")
+            raise HTTPException(403, CatalogoMensajes.obtener("LOGIN_USUARIO_INACTIVO"))
 
         if not AuthService.verify_password(form_data.password, contrasena_hash):
-            raise HTTPException(status_code=401, detail="Contraseña incorrecta")
+            raise HTTPException(401, CatalogoMensajes.obtener("LOGIN_CONTRASENA_INCORRECTA"))
 
         payload = {
             "sub": str(user_id),
@@ -66,28 +63,22 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         db_config.release_connection(connection)
 
 
-# ============================
-# REGISTRAR USUARIO
-# ============================
+
 @router.post("/registrar")
-def registrar_usuario(
-    datos: RegistroRequest,
-    user=Depends(auth_required(["Administrador"]))
-):
+def registrar_usuario(datos: RegistroRequest, user=Depends(auth_required(["Administrador"]))):
     connection = db_config.get_connection()
     cursor = connection.cursor()
 
     try:
+        servicio_usuarios.validar_creacion(datos)
         CatalogoParametros.validar("ROLES", datos.rol)
+
         contrasena_hash = AuthService.hash_password(datos.contrasena)
 
         cursor.execute("SELECT id FROM usuarios WHERE email = %s;", (datos.email,))
         if cursor.fetchone():
-            raise HTTPException(
-                status_code=400,
-                detail=f"El correo '{datos.email}' ya está registrado en el sistema."
-            )
-        
+            raise HTTPException(400, CatalogoMensajes.obtener("USUARIO_EMAIL_DUPLICADO"))
+
         cursor.execute("""
             INSERT INTO usuarios (nombre_usuario, email, contrasena, rol, activo, fecha_creacion)
             VALUES (%s, %s, %s, %s, TRUE, NOW())
@@ -104,25 +95,27 @@ def registrar_usuario(
             f"Usuario '{datos.nombre_usuario}' creado por el administrador {user['sub']}"
         )
 
-        return {"mensaje": "Usuario registrado correctamente", "usuario_id": usuario_id}
+        return {"mensaje": CatalogoMensajes.obtener("USUARIO_REGISTRADO_OK"), "usuario_id": usuario_id}
 
-    except Exception as e:
+    except HTTPException:
         connection.rollback()
-        raise HTTPException(status_code=500, detail=f"Error: {e}")
+        raise
+
+    except ValueError as e:
+        connection.rollback()
+        raise HTTPException(400, str(e))
+
+    except Exception:
+        connection.rollback()
+        raise HTTPException(500, CatalogoMensajes.obtener("ERROR_INTERNO"))
 
     finally:
         cursor.close()
         db_config.release_connection(connection)
 
 
-# ============================
-# ELIMINAR USUARIO
-# ============================
 @router.delete("/eliminar/{usuario_id}")
-def eliminar_usuario(
-    usuario_id: int,
-    user=Depends(auth_required(["Administrador"]))
-):
+def eliminar_usuario(usuario_id: int, user=Depends(auth_required(["Administrador"]))):
     connection = db_config.get_connection()
     cursor = connection.cursor()
 
@@ -131,7 +124,7 @@ def eliminar_usuario(
         usuario = cursor.fetchone()
 
         if not usuario:
-            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            raise HTTPException(404, CatalogoMensajes.obtener("USUARIO_NO_ENCONTRADO"))
 
         cursor.execute("DELETE FROM usuarios WHERE id = %s;", (usuario_id,))
         connection.commit()
@@ -143,20 +136,18 @@ def eliminar_usuario(
             f"Administrador {user['sub']} eliminó al usuario ID {usuario_id}"
         )
 
-        return {"mensaje": "Usuario eliminado correctamente"}
+        return {"mensaje": CatalogoMensajes.obtener("USUARIO_ELIMINADO_OK")}
 
     except Exception as e:
         connection.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(500, CatalogoMensajes.obtener("ERROR_INTERNO"))
 
     finally:
         cursor.close()
         db_config.release_connection(connection)
 
 
-# ============================
-# LISTAR USUARIOS (ADMIN)
-# ============================
+
 @router.get("/usuarios")
 def listar_usuarios(user=Depends(auth_required(["Administrador", "Lider"]))):
     connection = db_config.get_connection()
@@ -172,8 +163,8 @@ def listar_usuarios(user=Depends(auth_required(["Administrador", "Lider"]))):
         columnas = [desc[0] for desc in cursor.description]
         return [dict(zip(columnas, r)) for r in rows]
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        raise HTTPException(500, CatalogoMensajes.obtener("ERROR_INTERNO"))
 
     finally:
         cursor.close()
