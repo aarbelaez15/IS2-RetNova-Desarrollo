@@ -94,6 +94,9 @@ def vista_mis_retos_solicitante():
             <h4>{r['titulo']}</h4>
             <p><b>Estado:</b> {r['estado']}</p>
             <p><b>Fecha entrega:</b> {r['fecha_entrega']}</p>
+            <p><b>Responsable:</b> {r['responsable_id']}</p>
+            
+
         </div>
         """, unsafe_allow_html=True)
 
@@ -145,6 +148,8 @@ def vista_mis_retos_asignados():
         <div style="padding:12px;border-radius:10px;background:#dff;">
             <h4>{r['titulo']}</h4>
             <p>Estado: {r['estado']}</p>
+            <p>Fecha entrega: {r['fecha_entrega']}</p>
+            <p>Observaciones: {r['observaciones']}</p>
         </div>
         """, unsafe_allow_html=True)
 

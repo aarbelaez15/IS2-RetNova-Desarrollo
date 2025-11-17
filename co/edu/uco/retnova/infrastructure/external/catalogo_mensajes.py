@@ -32,6 +32,7 @@ class CatalogoMensajes:
         "ACTUALIZAR_USUARIO_OK": "El usuario fue actualizado correctamente.",
         "ACTUALIZAR_USUARIO_ERROR": "Error al actualizar el usuario.",
         "NO_ENCONTRADO_USUARIO": "No se encontraron usuarios que coincidan con los criterios proporcionados.",
+        "PROPIO_USUARIO_NO_ELIMINABLE": "No se puede eliminar el propio usuario.",
 
         # 🟩 Asignación de responsable
         "ASIGNAR_RESPONSABLE_OK": "El responsable del reto fue asignado correctamente.",

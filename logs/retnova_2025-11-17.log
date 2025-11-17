@@ -1,0 +1,8 @@
+2025-11-17 18:18:51,349 | INFO | Mensaje info
+2025-11-17 18:18:51,349 | WARNING | Mensaje warning
+2025-11-17 18:18:51,350 | ERROR | Mensaje error
+2025-11-17 18:18:51,350 | CRITICAL | Mensaje critical
+2025-11-17 18:20:29,221 | INFO | Mensaje info
+2025-11-17 18:20:29,222 | WARNING | Mensaje warning
+2025-11-17 18:20:29,222 | ERROR | Mensaje error
+2025-11-17 18:20:29,222 | CRITICAL | Mensaje critical

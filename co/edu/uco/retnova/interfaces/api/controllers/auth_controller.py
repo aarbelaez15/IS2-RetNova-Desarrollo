@@ -120,6 +120,10 @@ def eliminar_usuario(usuario_id: int, user=Depends(auth_required(["Administrador
     cursor = connection.cursor()
 
     try:
+        # 🚫 VALIDACIÓN: no permitir que el administrador se elimine a sí mismo
+        if usuario_id == int(user["sub"]):
+            raise HTTPException(404, CatalogoMensajes.obtener("PROPIO_USUARIO_NO_ELIMINABLE"))
+
         cursor.execute("SELECT id, nombre_usuario FROM usuarios WHERE id = %s;", (usuario_id,))
         usuario = cursor.fetchone()
 
@@ -138,6 +142,10 @@ def eliminar_usuario(usuario_id: int, user=Depends(auth_required(["Administrador
 
         return {"mensaje": CatalogoMensajes.obtener("USUARIO_ELIMINADO_OK")}
 
+    except HTTPException as e:
+        connection.rollback()
+        raise e
+
     except Exception as e:
         connection.rollback()
         raise HTTPException(500, CatalogoMensajes.obtener("ERROR_INTERNO"))
@@ -145,6 +153,7 @@ def eliminar_usuario(usuario_id: int, user=Depends(auth_required(["Administrador
     finally:
         cursor.close()
         db_config.release_connection(connection)
+
 
 
 
