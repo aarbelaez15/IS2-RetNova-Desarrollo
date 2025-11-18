@@ -155,6 +155,102 @@ def eliminar_usuario(usuario_id: int, user=Depends(auth_required(["Administrador
         db_config.release_connection(connection)
 
 
+@router.put("/activar/{usuario_id}")
+def activar_usuario(usuario_id: int, user=Depends(auth_required(["Administrador"]))):
+    connection = db_config.get_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Verificar si existe
+        cursor.execute("SELECT id, activo FROM usuarios WHERE id = %s;", (usuario_id,))
+        usuario = cursor.fetchone()
+
+        if not usuario:
+            raise HTTPException(404, "Usuario no encontrado.")
+
+        _, activo = usuario
+
+        if activo:
+            raise HTTPException(400, "El usuario ya está activo.")
+
+        # Activar
+        cursor.execute("""
+            UPDATE usuarios SET activo = TRUE WHERE id = %s;
+        """, (usuario_id,))
+        connection.commit()
+
+        # Registrar auditoría
+        auditor = AuditoriaRepositoryPostgres()
+        auditor.registrar_evento(
+            user["sub"],
+            "ACTIVAR_USUARIO",
+            f"El administrador {user['sub']} activó al usuario {usuario_id}"
+        )
+
+        return {"mensaje": "Usuario activado correctamente."}
+
+    except HTTPException:
+        connection.rollback()
+        raise
+
+    except Exception:
+        connection.rollback()
+        raise HTTPException(500, "Error interno del servidor.")
+
+    finally:
+        cursor.close()
+        db_config.release_connection(connection)
+
+
+@router.put("/desactivar/{usuario_id}")
+def desactivar_usuario(usuario_id: int, user=Depends(auth_required(["Administrador"]))):
+    connection = db_config.get_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Evitar desactivar al Admin principal
+        if usuario_id == 1:
+            raise HTTPException(400, "No se puede desactivar el Administrador principal.")
+
+        # Verificar si existe
+        cursor.execute("SELECT id, activo FROM usuarios WHERE id = %s;", (usuario_id,))
+        usuario = cursor.fetchone()
+
+        if not usuario:
+            raise HTTPException(404, "Usuario no encontrado.")
+
+        _, activo = usuario
+
+        if not activo:
+            raise HTTPException(400, "El usuario ya está inactivo.")
+
+        # Desactivar
+        cursor.execute("""
+            UPDATE usuarios SET activo = FALSE WHERE id = %s;
+        """, (usuario_id,))
+        connection.commit()
+
+        # Registrar auditoría
+        auditor = AuditoriaRepositoryPostgres()
+        auditor.registrar_evento(
+            user["sub"],
+            "DESACTIVAR_USUARIO",
+            f"El administrador {user['sub']} desactivó al usuario {usuario_id}"
+        )
+
+        return {"mensaje": "Usuario desactivado correctamente."}
+
+    except HTTPException:
+        connection.rollback()
+        raise
+
+    except Exception:
+        connection.rollback()
+        raise HTTPException(500, "Error interno del servidor.")
+
+    finally:
+        cursor.close()
+        db_config.release_connection(connection)
 
 
 @router.get("/usuarios")

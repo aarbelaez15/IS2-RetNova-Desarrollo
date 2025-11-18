@@ -73,6 +73,9 @@ class CatalogoMensajes:
         "USUARIO_EMAIL_OBLIGATORIO": "El email es obligatorio.",
         "USUARIO_CONTRASENA_OBLIGATORIA": "La contraseña es obligatoria.",
         "ASIGNAR_RESPONSABLE_ROL_INVALIDO": "Solo se puede asignar un reto a un usuario con rol Miembro.",
+        "USUARIO_DESACTIVADO_OK": "El usuario ha sido desactivado correctamente.",
+        "USUARIO_YA_INACTIVO": "El usuario ya se encuentra inactivo.",
+        "USUARIO_NO_SE_PUEDE_DESACTIVAR_ADMIN": "No está permitido desactivar al usuario Administrador principal.",
 
 
     }

@@ -214,3 +214,16 @@ class RetoRepositoryPostgres:
         finally:
             cursor.close()
             db_config.release_connection(connection)
+
+
+    def activar_usuario(self, usuario_id: int):
+        conn = db_config.get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    UPDATE usuarios SET activo = TRUE
+                    WHERE id = %s
+                """, (usuario_id,))
+                conn.commit()
+        finally:
+            db_config.release_connection(conn)

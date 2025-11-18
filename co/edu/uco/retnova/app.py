@@ -1,6 +1,8 @@
 import streamlit as st
 import requests
 from datetime import date
+import pandas as pd
+import altair as alt
 
 # ==============================
 # CONFIGURACIÓN
@@ -12,7 +14,6 @@ st.set_page_config(
     page_icon="🎯",
     layout="wide"
 )
-
 
 # ==============================
 # HELPERS
@@ -297,7 +298,6 @@ def vista_admin_usuarios():
 
     if res.status_code != 200:
         st.error("No se pudieron cargar los usuarios.")
-        st.write(res.text)
         return
 
     usuarios = res.json()
@@ -308,15 +308,31 @@ def vista_admin_usuarios():
         col1, col2 = st.columns([4, 1])
 
         with col1:
+            estado_color = "🟢 Activo" if u["activo"] else "🔴 Inactivo"
             st.write(
                 f"**{u['id']} - {u['nombre_usuario']}** "
-                f"({u['rol']}) — {'🟢 Activo' if u['activo'] else '🔴 Inactivo'}"
+                f"({u['rol']}) — {estado_color}"
             )
 
         with col2:
-            if st.button("🗑️ Eliminar", key=f"del_{u['id']}"):
-                eliminar_usuario_admin(u["id"])
-                st.rerun()
+
+            # 🚫 Evitar autodesactivación
+            if u["id"] == st.session_state.user_id:
+                st.button("❌", key=f"self_{u['id']}", disabled=True)
+                continue
+
+            # Si está activo → mostrar botón desactivar
+            if u["activo"]:
+                if st.button("Desactivar", key=f"des_{u['id']}"):
+                    desactivar_usuario_admin(u["id"])
+                    st.rerun()
+
+            # Si está inactivo → mostrar botón activar
+            else:
+                if st.button("Activar", key=f"act_{u['id']}"):
+                    activar_usuario_admin(u["id"])
+                    st.rerun()
+
 
 # ==============================
 # ADMIN — Auditoría
@@ -387,17 +403,6 @@ def vista_admin_crear_usuario():
             st.error(res.json()["error"])
 
 
-def eliminar_usuario_admin(usuario_id):
-    res = requests.delete(
-        f"{API_URL}/auth/eliminar/{usuario_id}",
-        headers={"Authorization": f"Bearer {st.session_state.token}"}
-    )
-
-    if res.status_code == 200:
-        st.success(res.json().get("mensaje", "USUARIO_ELIMINADO_OK"))
-    else:
-        st.error(res.json().get("error", "NO_ENCONTRADO_USUARIO"))
-
 
 def vista_listar_todos_retos():
     st.title("📋 Lista de Todos los Retos")
@@ -428,8 +433,7 @@ def vista_listar_todos_retos():
             <p><b>Fecha entrega:</b> {r['fecha_entrega']}</p>
         </div>
         """, unsafe_allow_html=True)
-import pandas as pd
-import altair as alt
+
 def badge_estado(estado: str) -> str:
     colores = {
         "Pendiente": "#f1c40f",     # Amarillo
@@ -451,6 +455,27 @@ def badge_estado(estado: str) -> str:
             {estado}
         </span>
     """
+def desactivar_usuario_admin(usuario_id):
+    res = requests.put(
+        f"{API_URL}/auth/desactivar/{usuario_id}",
+        headers={"Authorization": f"Bearer {st.session_state.token}"}
+    )
+    if res.status_code == 200:
+        st.success("Usuario desactivado correctamente.")
+    else:
+        st.error(res.json().get("error", "Error al desactivar usuario"))
+
+
+def activar_usuario_admin(usuario_id):
+    res = requests.put(
+        f"{API_URL}/auth/activar/{usuario_id}",
+        headers={"Authorization": f"Bearer {st.session_state.token}"}
+    )
+    if res.status_code == 200:
+        st.success("Usuario activado correctamente.")
+    else:
+        st.error(res.json().get("error", "Error al activar usuario"))
+
 
 def vista_dashboard():
     st.title("📊 Dashboard de Gestión de Retos")
