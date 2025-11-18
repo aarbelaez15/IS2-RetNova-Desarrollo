@@ -1,0 +1,6 @@
+2025-11-18 12:01:49,511 | ERROR | El reto debe tener título y descripción.
+2025-11-18 12:02:14,997 | ERROR | La fecha de entrega debe ser futura.
+2025-11-18 12:02:19,862 | INFO | Reto creado exitosamente: 'Informar Inmueble' | Solicitante ID: 16
+2025-11-18 12:02:57,841 | ERROR | La fecha de entrega debe ser futura.
+2025-11-18 12:03:03,336 | ERROR | Error al registrar reto: connection already closed
+2025-11-18 12:04:16,513 | INFO | Reto creado exitosamente: 'Comisiones' | Solicitante ID: 16

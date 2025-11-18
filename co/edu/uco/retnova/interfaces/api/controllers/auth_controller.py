@@ -65,20 +65,24 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 @router.post("/registrar")
+
 def registrar_usuario(datos: RegistroRequest, user=Depends(auth_required(["Administrador"]))):
     connection = db_config.get_connection()
     cursor = connection.cursor()
 
     try:
+        # Validaciones previas
         servicio_usuarios.validar_creacion(datos)
         CatalogoParametros.validar("ROLES", datos.rol)
 
         contrasena_hash = AuthService.hash_password(datos.contrasena)
 
+        # Validación email duplicado
         cursor.execute("SELECT id FROM usuarios WHERE email = %s;", (datos.email,))
         if cursor.fetchone():
-            raise HTTPException(400, CatalogoMensajes.obtener("USUARIO_EMAIL_DUPLICADO"))
+            raise ValueError(CatalogoMensajes.obtener("USUARIO_EMAIL_DUPLICADO"))
 
+        # Inserción
         cursor.execute("""
             INSERT INTO usuarios (nombre_usuario, email, contrasena, rol, activo, fecha_creacion)
             VALUES (%s, %s, %s, %s, TRUE, NOW())
@@ -88,6 +92,7 @@ def registrar_usuario(datos: RegistroRequest, user=Depends(auth_required(["Admin
         usuario_id = cursor.fetchone()[0]
         connection.commit()
 
+        # Auditoría
         auditor = AuditoriaRepositoryPostgres()
         auditor.registrar_evento(
             user["sub"],
@@ -97,17 +102,18 @@ def registrar_usuario(datos: RegistroRequest, user=Depends(auth_required(["Admin
 
         return {"mensaje": CatalogoMensajes.obtener("USUARIO_REGISTRADO_OK"), "usuario_id": usuario_id}
 
-    except HTTPException:
-        connection.rollback()
-        raise
-
     except ValueError as e:
         connection.rollback()
-        raise HTTPException(400, str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
-    except Exception:
+    except HTTPException as e:
         connection.rollback()
-        raise HTTPException(500, CatalogoMensajes.obtener("ERROR_INTERNO"))
+        raise e  # Reenviar tal cual
+
+    except Exception as e:
+        connection.rollback()
+        # Deja que el middleware lo capture, NO lo conviertas a 500 aquí
+        raise e
 
     finally:
         cursor.close()

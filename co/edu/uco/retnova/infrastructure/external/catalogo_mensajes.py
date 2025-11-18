@@ -25,7 +25,8 @@ class CatalogoMensajes:
         "RETO_FECHA_ENTREGA_FUTURA": "La fecha de entrega debe ser futura.",
         "RETO_FINALIZAR_SIN_FECHA": "No se puede finalizar un reto sin fecha de entrega.",
 
-
+        "ERROR_DESCONOCIDO": "❌ Ha ocurrido un error inesperado. Intenta nuevamente.",
+        "ERROR_DB_CONEXION": "❌ Error de conexión con la base de datos. Verifica disponibilidad.",
         # 🟩 Usuario
         "CREAR_USUARIO_OK": "El usuario fue registrado correctamente.",
         "CREAR_USUARIO_ERROR": "Error al registrar el usuario.",
@@ -76,6 +77,11 @@ class CatalogoMensajes:
         "USUARIO_DESACTIVADO_OK": "El usuario ha sido desactivado correctamente.",
         "USUARIO_YA_INACTIVO": "El usuario ya se encuentra inactivo.",
         "USUARIO_NO_SE_PUEDE_DESACTIVAR_ADMIN": "No está permitido desactivar al usuario Administrador principal.",
+        "USUARIO_YA_EXISTE": "El nombre de usuario o email ya están en uso.",
+        "TODOS_LOS_CAMPOS_OBLIGATORIOS": "Todos los campos son obligatorios.",
+        "USUARIO_EMAIL_OBLIGATORIO": "El email es obligatorio.",
+        "EMAIL_FORMATO_INVALIDO": "El email no tiene un formato válido.",
+
 
 
     }
