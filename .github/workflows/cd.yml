@@ -1,4 +1,4 @@
-name: CD - RetNova Build Validation
+name: CD - RetNova Deployment
 
 on:
   push:
@@ -6,39 +6,23 @@ on:
       - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📥 Checkout
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: 🐍 Configurar Python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.9"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
 
-    - name: 📦 Instalar dependencias
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-    - name: 🧪 Validación: FastAPI puede levantar
-      run: |
-        nohup uvicorn co.edu.uco.retnova.interfaces.api.main:app --port 9000 &
-        sleep 5
-        curl -I http://127.0.0.1:9000/docs
-
-    - name: 🧪 Validación: Streamlit instalado
-      run: |
-        streamlit version
-
-    - name: 📦 Empaquetar artefacto
-      run: |
-        zip -r retnova_build.zip .
-
-    - name: 📤 Subir artefacto
-      uses: actions/upload-artifact@v3
-      with:
-        name: retnova_build
-        path: retnova_build.zip
+      - name: Deploy to Railway
+        uses: railwayapp/railway-deploy@v1
+        with:
+          railwayToken: ${{ secrets.RAILWAY_TOKEN }}
+          service: IS2-RetNova-Desarrollo
