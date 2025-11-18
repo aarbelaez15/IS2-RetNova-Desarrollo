@@ -36,5 +36,5 @@ class DatabaseConfig:
     def release_connection(self, connection):
         self.connection_pool.putconn(connection)
 
-# Instancia global reutilizable
+# Instancia global reutilizable.
 db_config = DatabaseConfig()
