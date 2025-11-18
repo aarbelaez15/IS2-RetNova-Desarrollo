@@ -1,5 +1,4 @@
 import os
-import psycopg2
 from psycopg2 import pool
 
 class DatabaseConfig:
@@ -7,27 +6,29 @@ class DatabaseConfig:
 
     def __init__(self):
 
-        # ============================
-        #  CONFIGURACIÓN HÍBRIDA
-        # ============================
-        # Railway -> usa variables de entorno
-        # Local   -> usa valores por defecto
+        # Detectar si estamos en Railway
+        is_railway = os.getenv("RAILWAY_ENVIRONMENT") is not None
 
-        db_user = os.getenv("PGUSER", "postgres")
-        db_password = os.getenv("PGPASSWORD", "1234")
-        db_host = os.getenv("PGHOST", "localhost")
-        db_port = os.getenv("PGPORT", "5432")
-        db_name = os.getenv("PGDATABASE", "retnova_db")
-
-        # Crear pool de conexiones
-        self.connection_pool = pool.SimpleConnectionPool(
-            1, 10,
-            user=db_user,
-            password=db_password,
-            host=db_host,
-            port=db_port,
-            database=db_name
-        )
+        if is_railway:
+            # Configuración para Railway
+            self.connection_pool = pool.SimpleConnectionPool(
+                1, 10,
+                user=os.getenv("PGUSER"),
+                password=os.getenv("PGPASSWORD"),
+                host=os.getenv("PGHOST"),
+                port=os.getenv("PGPORT"),
+                database=os.getenv("PGDATABASE")
+            )
+        else:
+            # Configuración LOCAL (tu máquina)
+            self.connection_pool = pool.SimpleConnectionPool(
+                1, 10,
+                user="postgres",
+                password="1234",
+                host="localhost",
+                port="5432",
+                database="retnova_db"
+            )
 
     def get_connection(self):
         return self.connection_pool.getconn()
