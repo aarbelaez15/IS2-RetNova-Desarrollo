@@ -6,3 +6,5 @@
 2025-11-17 18:20:29,222 | WARNING | Mensaje warning
 2025-11-17 18:20:29,222 | ERROR | Mensaje error
 2025-11-17 18:20:29,222 | CRITICAL | Mensaje critical
+2025-11-17 21:56:29,337 | ERROR | La fecha de entrega debe ser futura.
+2025-11-17 21:56:35,605 | INFO | Reto creado exitosamente: 'Colocaciones' | Solicitante ID: 7

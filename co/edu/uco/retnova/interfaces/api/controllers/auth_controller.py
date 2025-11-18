@@ -208,29 +208,30 @@ def desactivar_usuario(usuario_id: int, user=Depends(auth_required(["Administrad
     cursor = connection.cursor()
 
     try:
-        # Evitar desactivar al Admin principal
-        if usuario_id == 1:
-            raise HTTPException(400, "No se puede desactivar el Administrador principal.")
+        # 1️⃣ Evitar que un usuario se desactive a sí mismo
+        if usuario_id == user["sub"]:
+            raise HTTPException(400, "No puedes desactivarte a ti mismo.")
 
-        # Verificar si existe
-        cursor.execute("SELECT id, activo FROM usuarios WHERE id = %s;", (usuario_id,))
+        # 2️⃣ Verificar si el usuario es administrador (no desactivable)
+        cursor.execute("SELECT id, rol, activo FROM usuarios WHERE id = %s;", (usuario_id,))
         usuario = cursor.fetchone()
 
         if not usuario:
             raise HTTPException(404, "Usuario no encontrado.")
 
-        _, activo = usuario
+        _, rol, activo = usuario
+
+        if rol == "Administrador":
+            raise HTTPException(400, "No se puede desactivar a un administrador.")
 
         if not activo:
             raise HTTPException(400, "El usuario ya está inactivo.")
 
-        # Desactivar
-        cursor.execute("""
-            UPDATE usuarios SET activo = FALSE WHERE id = %s;
-        """, (usuario_id,))
+        # 3️⃣ Desactivar usuario
+        cursor.execute("UPDATE usuarios SET activo = FALSE WHERE id = %s;", (usuario_id,))
         connection.commit()
 
-        # Registrar auditoría
+        # 4️⃣ Auditoría
         auditor = AuditoriaRepositoryPostgres()
         auditor.registrar_evento(
             user["sub"],
@@ -251,7 +252,6 @@ def desactivar_usuario(usuario_id: int, user=Depends(auth_required(["Administrad
     finally:
         cursor.close()
         db_config.release_connection(connection)
-
 
 @router.get("/usuarios")
 def listar_usuarios(user=Depends(auth_required(["Administrador", "Lider"]))):
